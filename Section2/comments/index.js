@@ -5,7 +5,6 @@ const cors = require("cors");
 const axios = require("axios");
 
 const app = express();
-
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -21,7 +20,7 @@ app.post("/posts/:id/comments", async (req, res) => {
 
   const comments = commentsByPostId[req.params.id] || [];
 
-  comments.push({ id: commentId, content });
+  comments.push({ id: commentId, content, status: "pending" });
 
   commentsByPostId[req.params.id] = comments;
 
@@ -31,18 +30,41 @@ app.post("/posts/:id/comments", async (req, res) => {
       id: commentId,
       content,
       postId: req.params.id,
+      status: "pending",
     },
   });
 
   res.status(201).send(comments);
 });
 
-app.post("/events", (req, res) => {
-  console.log("event received: ", req.body.type);
+app.post("/events", async (req, res) => {
+  console.log("Event Received:", req.body.type);
+
+  const { type, data } = req.body;
+
+  if (type === "CommentModerated") {
+    const { postId, id, status, content } = data;
+    const comments = commentsByPostId[postId];
+
+    const comment = comments.find((comment) => {
+      return comment.id === id;
+    });
+    comment.status = status;
+
+    await axios.post("http://localhost:4005/events", {
+      type: "CommentUpdated",
+      data: {
+        id,
+        status,
+        postId,
+        content,
+      },
+    });
+  }
 
   res.send({});
 });
 
-app.listen(4001, (req, res) => {
-  console.log("Listening on port 4001");
+app.listen(4001, () => {
+  console.log("Listening on 4001");
 });

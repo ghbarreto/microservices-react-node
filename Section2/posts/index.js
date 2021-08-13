@@ -1,13 +1,10 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-// generate a new ID
 const { randomBytes } = require("crypto");
-// gets rid of the CORS error
 const cors = require("cors");
-const { default: axios } = require("axios");
+const axios = require("axios");
 
 const app = express();
-
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -18,7 +15,6 @@ app.get("/posts", (req, res) => {
 });
 
 app.post("/posts", async (req, res) => {
-  // creating a new random id
   const id = randomBytes(4).toString("hex");
   const { title } = req.body;
 
@@ -39,7 +35,7 @@ app.post("/posts", async (req, res) => {
 });
 
 app.post("/events", (req, res) => {
-  console.log("event received: ", req.body.type);
+  console.log("Received Event", req.body.type);
 
   res.send({});
 });
